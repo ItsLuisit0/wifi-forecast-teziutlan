@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Wi-Fi ITST · Predicción a 1 hora</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/duotone/style.css">
+  <link rel="stylesheet" href="styles.css?v=14">
+  <script>
+    // Aplica el tema guardado antes de pintar para evitar parpadeo.
+    try {
+      const t = localStorage.getItem("itst-tema");
+      if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
+    } catch {}
+  </script>
+</head>
+<body>
+
+  <header class="hero">
+    <div class="hero-foto" role="img" aria-label="Vista aérea de Teziutlán, Puebla, con la sierra al fondo"></div>
+    <div class="hero-niebla"></div>
+    <nav class="barra-top">
+      <span class="marca"><span class="logo"><i class="ico ph-duotone ph-wifi-high" aria-hidden="true"></i></span>TecNM · Teziutlán</span>
+      <button id="btn-tema" class="tema" type="button" aria-label="Cambiar entre modo claro y oscuro">
+        <i class="ico ph-duotone ph-sun sol" aria-hidden="true"></i><i class="ico ph-duotone ph-moon luna" aria-hidden="true"></i>
+      </button>
+    </nav>
+    <div class="hero-in">
+      <p class="eyebrow"><span class="punto"></span>Análisis y Exploración de Datos · proyecto escolar</p>
+      <h1>¿Cómo estará el Wi-Fi <em>en una hora?</em></h1>
+      <p class="sub">Un Random Forest entrenado con el histórico de mediciones del campus. Combina tu zona (GPS), el clima actual (Open-Meteo) y el estado de la red en este momento.</p>
+      <div class="chips">
+        <span class="chip"><i class="ico ph-duotone ph-tree-evergreen" aria-hidden="true"></i>Random Forest</span>
+        <span class="chip"><i class="ico ph-duotone ph-cloud-sun" aria-hidden="true"></i>Clima en vivo</span>
+        <span class="chip"><i class="ico ph-duotone ph-map-pin" aria-hidden="true"></i>Ubicación GPS</span>
+        <span class="chip aviso" id="badge-datos"><i class="ico ph-duotone ph-database" aria-hidden="true"></i>Histórico simulado</span>
+      </div>
+    </div>
+    <div class="hero-pie">
+      <span class="coord"><i class="ico ph-duotone ph-mountains" aria-hidden="true"></i>19.82° N · 97.36° O · 1,990 msnm</span>
+      <a class="credito" href="https://commons.wikimedia.org/wiki/File:Fotograf%C3%ADa_a%C3%A9rea_de_Teziutl%C3%A1n.jpg" target="_blank" rel="noopener">Foto: Rocha2503 · CC BY-SA 4.0</a>
+    </div>
+  </header>
+
+  <main class="layout">
+    <div class="pasos">
+      <section class="card" id="paso-zona">
+        <div class="card-head">
+          <span class="paso-ico t-azul"><i class="ico ph-duotone ph-map-pin" aria-hidden="true"></i></span>
+          <div><p class="paso-num">01 · Paso</p><h2>Zona</h2></div>
+          <button id="btn-gps" class="btn"><i class="ico ph-duotone ph-crosshair" aria-hidden="true"></i>Detectar mi ubicación</button>
+        </div>
+        <p class="estado" id="estado-gps">Selecciona tu edificio o usa el GPS.</p>
+        <div class="fila">
+          <label><span class="lbl"><i class="ico ph-duotone ph-buildings" aria-hidden="true"></i>Edificio</span><select id="edificio"></select></label>
+          <label><span class="lbl"><i class="ico ph-duotone ph-stack" aria-hidden="true"></i>Planta</span><select id="planta"><option>Baja</option><option>Alta</option></select></label>
+        </div>
+        <p class="nota" id="uso-edificio"></p>
+        <button id="btn-calibrar" class="link"><i class="ico ph-duotone ph-bookmark-simple" aria-hidden="true"></i>Guardar mi posición como coordenadas de este edificio</button>
+      </section>
+
+      <section class="card" id="paso-clima">
+        <div class="card-head">
+          <span class="paso-ico t-ambar"><i class="ico ph-duotone ph-cloud-sun" aria-hidden="true"></i></span>
+          <div><p class="paso-num">02 · Paso</p><h2>Clima</h2></div>
+          <button id="btn-clima" class="btn"><i class="ico ph-duotone ph-arrows-clockwise" aria-hidden="true"></i>Actualizar clima</button>
+        </div>
+        <p class="estado" id="estado-clima">Consultando Open-Meteo…</p>
+        <div class="campos">
+          <label><span class="lbl"><i class="ico ph-duotone ph-thermometer-simple" aria-hidden="true"></i>Temperatura (°C)</span><input id="temperatura_c" type="number" step="0.1"></label>
+          <label><span class="lbl"><i class="ico ph-duotone ph-drop" aria-hidden="true"></i>Humedad (%)</span><input id="humedad_pct" type="number" step="1"></label>
+          <label><span class="lbl"><i class="ico ph-duotone ph-cloud-rain" aria-hidden="true"></i>Lluvia ahora (mm)</span><input id="precipitacion_mm" type="number" step="0.1" min="0"></label>
+          <label><span class="lbl"><i class="ico ph-duotone ph-umbrella" aria-hidden="true"></i>Lluvia próxima hora (mm)</span><input id="precip_prox_hora_mm" type="number" step="0.1" min="0"></label>
+          <label><span class="lbl"><i class="ico ph-duotone ph-wind" aria-hidden="true"></i>Viento (km/h)</span><input id="viento_kmh" type="number" step="0.1" min="0"></label>
+        </div>
+      </section>
+
+      <section class="card" id="paso-red">
+        <div class="card-head">
+          <span class="paso-ico t-verde"><i class="ico ph-duotone ph-pulse" aria-hidden="true"></i></span>
+          <div><p class="paso-num">03 · Paso</p><h2>Red ahora</h2></div>
+          <button id="btn-medir" class="btn"><i class="ico ph-duotone ph-gauge" aria-hidden="true"></i>Medir desde este navegador</button>
+        </div>
+        <p class="estado" id="estado-red">Valores típicos del histórico para esta zona, día y hora. Puedes editarlos.</p>
+        <div class="campos">
+          <label><span class="lbl"><i class="ico ph-duotone ph-users-three" aria-hidden="true"></i>Dispositivos conectados</span><input id="dispositivos_conectados" type="number" step="1" min="0"></label>
+          <label><span class="lbl"><i class="ico ph-duotone ph-cell-signal-high" aria-hidden="true"></i>Señal (dBm)</span><input id="senal_dbm" type="number" step="1"></label>
+          <label><span class="lbl"><i class="ico ph-duotone ph-timer" aria-hidden="true"></i>Latencia (ms)</span><input id="latencia_ms" type="number" step="0.1" min="0"></label>
+          <label><span class="lbl"><i class="ico ph-duotone ph-percent" aria-hidden="true"></i>Pérdida de paquetes (%)</span><input id="perdida_pct" type="number" step="0.01" min="0"></label>
+          <label><span class="lbl"><i class="ico ph-duotone ph-download-simple" aria-hidden="true"></i>Descarga (Mbps)</span><input id="descarga_mbps" type="number" step="0.1" min="0"></label>
+        </div>
+        <div class="fila">
+          <label><span class="lbl"><i class="ico ph-duotone ph-calendar-blank" aria-hidden="true"></i>Día</span><select id="dia_semana">
+            <option value="0">Lunes</option><option value="1">Martes</option><option value="2">Miércoles</option>
+            <option value="3">Jueves</option><option value="4">Viernes</option></select></label>
+          <label><span class="lbl"><i class="ico ph-duotone ph-clock" aria-hidden="true"></i>Hora</span><select id="hora"></select></label>
+        </div>
+        <p class="nota" id="nota-hora"></p>
+      </section>
+    </div>
+
+    <aside class="card resultado" id="resultado">
+      <div class="card-head">
+        <span class="paso-ico t-morado"><i class="ico ph-duotone ph-sparkle" aria-hidden="true"></i></span>
+        <div><p class="paso-num">Resultado</p><h2>Predicción</h2></div>
+      </div>
+      <div class="comparacion">
+        <div class="tile" id="tile-ahora">
+          <span class="anillo"><i class="ico ph-duotone ph-wifi-high" id="icono-ahora" aria-hidden="true"></i></span>
+          <div><p class="mini">Ahora</p><p class="clase" id="clase-ahora">—</p></div>
+        </div>
+        <span class="flecha"><i class="ico ph-duotone ph-arrow-down" aria-hidden="true"></i></span>
+        <div class="tile futuro" id="tile-futura">
+          <span class="anillo"><i class="ico ph-duotone ph-wifi-high" id="icono-futura" aria-hidden="true"></i></span>
+          <div><p class="mini" id="titulo-futuro">En una hora</p><p class="clase grande" id="clase-futura">—</p><p class="confianza" id="confianza"></p></div>
+        </div>
+      </div>
+      <h3><i class="ico ph-duotone ph-sliders-horizontal" aria-hidden="true"></i>Probabilidad por clase</h3>
+      <div id="barras-prob"></div>
+      <p class="callout"><i class="ico ph-duotone ph-info" aria-hidden="true"></i><span id="explicacion"></span></p>
+      <h3><i class="ico ph-duotone ph-chart-bar" aria-hidden="true"></i>Histórico de esta zona por hora</h3>
+      <div id="grafica-hora"></div>
+      <div class="leyenda"><span class="c-b"></span>Buena <span class="c-r"></span>Regular <span class="c-d"></span>Deficiente</div>
+    </aside>
+  </main>
+
+  <div class="layout layout-1">
+    <section class="card ancho" id="modelo">
+      <div class="card-head">
+        <span class="paso-ico t-azul"><i class="ico ph-duotone ph-target" aria-hidden="true"></i></span>
+        <div><p class="paso-num">Evaluación</p><h2>Qué tan bien predice</h2></div>
+      </div>
+      <p class="nota" id="meta-modelo"></p>
+      <div class="kpis" id="kpis"></div>
+      <div class="dos">
+        <div><h3><i class="ico ph-duotone ph-tree-evergreen" aria-hidden="true"></i>Comparación con modelos base</h3><div class="tabla-wrap"><table id="tabla-resultados"></table></div></div>
+        <div><h3><i class="ico ph-duotone ph-grid-four" aria-hidden="true"></i>Matriz de confusión (prueba)</h3><div class="tabla-wrap"><table id="tabla-confusion" class="confusion"></table></div></div>
+      </div>
+      <h3><i class="ico ph-duotone ph-chart-bar" aria-hidden="true"></i>Variables que más pesan</h3>
+      <div id="importancia"></div>
+    </section>
+  </div>
+
+  <footer><i class="ico ph-duotone ph-wifi-high" aria-hidden="true"></i> Clima: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> · Ubicación: Geolocation API del navegador · Modelo: scikit-learn exportado a JavaScript.</footer>
+
+  <script src="edificios.js"></script>
+  <script src="modelo.js"></script>
+  <script src="forest.js"></script>
+  <script src="app.js?v=4"></script>
+</body>
+</html>
