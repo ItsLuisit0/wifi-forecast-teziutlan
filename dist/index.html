@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Señal · Pronóstico Wi-Fi ITST</title>
+  <link rel="icon" href="logo.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400..600&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+  <link rel="stylesheet" href="styles.css?v=55" />
+</head>
+<body>
+  <!-- ============ BARRA SUPERIOR ============ -->
+  <header class="topbar">
+    <div class="topbar-in">
+      <a class="marca" href="#pronostico" data-ir="pronostico" aria-label="Señal, inicio">
+        <svg class="logo" viewBox="0 0 32 32" aria-hidden="true">
+          <rect width="32" height="32" rx="9" class="logo-fondo" />
+          <path d="M7 14.5a12.5 12.5 0 0 1 18 0" class="logo-trazo" />
+          <path d="M10.6 18.2a7.4 7.4 0 0 1 10.8 0" class="logo-trazo" />
+          <circle cx="16" cy="22.6" r="2.2" class="logo-punto" />
+          <path d="M22.5 25.5h4" class="logo-trazo tenue" />
+        </svg>
+        <span class="marca-txt">Señal<span>ITST</span></span>
+      </a>
+      <nav class="pestanas" role="tablist" aria-label="Secciones">
+        <button type="button" class="pestana activa" role="tab" aria-selected="true" data-seccion="pronostico">Pronóstico</button>
+        <button type="button" class="pestana" role="tab" aria-selected="false" data-seccion="modelos">Modelos</button>
+        <button type="button" class="pestana" role="tab" aria-selected="false" data-seccion="datos">Datos</button>
+      </nav>
+      <button type="button" class="tema" id="btn-tema" aria-label="Cambiar tema claro u oscuro">
+        <i class="ph ph-moon luna"></i>
+        <i class="ph ph-sun sol"></i>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <!-- ================= PRONÓSTICO ================= -->
+    <section class="seccion" id="sec-pronostico">
+      <header class="encabezado">
+        <p class="eyebrow" id="kicker-datos"></p>
+        <h1>¿Cómo estará el Wi-Fi en la próxima hora?</h1>
+      </header>
+
+      <div class="tablero">
+        <!-- Controles -->
+        <aside class="panel-lateral" aria-label="Configura tu predicción">
+          <div class="paso">
+            <p class="paso-titulo"><span>01</span> Edificio</p>
+            <div class="opciones" id="chips-edificio" role="radiogroup" aria-label="Edificio"></div>
+          </div>
+
+          <div class="paso">
+            <p class="paso-titulo"><span>02</span> Salón o área</p>
+            <div class="opciones" id="chips-ap" role="radiogroup" aria-label="Salón o área"></div>
+          </div>
+
+          <div class="paso">
+            <p class="paso-titulo"><span>03</span> Momento</p>
+            <div class="segmento ancho" role="radiogroup" aria-label="Momento de la predicción">
+              <button type="button" class="modo activo" data-modo="ahora" role="radio" aria-checked="true">Ahora mismo</button>
+              <button type="button" class="modo" data-modo="otra" role="radio" aria-checked="false">Predicción Wi-Fi</button>
+            </div>
+
+            <div class="reloj-vivo" id="panel-ahora">
+              <b id="reloj-ahora">--:--</b>
+              <small id="fecha-ahora"></small>
+            </div>
+
+            <div class="panel-otra" id="panel-otra" hidden>
+              <div class="dias" id="chips-dia" role="radiogroup" aria-label="Día"></div>
+              <div class="reloj-elegir">
+                <input type="time" id="input-hora" step="60" aria-label="Hora exacta" />
+                <div class="atajos" id="atajos-hora">
+                  <button type="button" data-hora="07:00">7</button>
+                  <button type="button" data-hora="10:00">10</button>
+                  <button type="button" data-hora="13:00">13</button>
+                  <button type="button" data-hora="16:00">16</button>
+                  <button type="button" data-hora="19:00">19</button>
+                </div>
+              </div>
+            </div>
+
+            <p class="destino" id="txt-destino"></p>
+          </div>
+
+          <details class="avanzado">
+            <summary>Opciones avanzadas</summary>
+            <label class="campo">
+              <span>Tipo de día</span>
+              <select id="sel-tipo">
+                <option value="3">Laboral normal</option>
+                <option value="1">Baja asistencia</option>
+                <option value="2">Laboral (sábado)</option>
+                <option value="0">No laborable</option>
+              </select>
+            </label>
+            <p class="nota">Valores típicos de ese salón a esa hora. Cámbialos para simular otra situación.</p>
+            <div class="campos">
+              <label class="campo"><span>Clientes</span><input type="number" id="in-clientes" min="0" max="300" step="1" /></label>
+              <label class="campo"><span>2.4 GHz</span><input type="number" id="in-c24" min="0" max="300" step="1" /></label>
+              <label class="campo"><span>5 GHz</span><input type="number" id="in-c5" min="0" max="300" step="1" /></label>
+              <label class="campo"><span>Descarga Mbps</span><input type="number" id="in-desc" min="0" step="0.001" /></label>
+              <label class="campo"><span>Subida Mbps</span><input type="number" id="in-sub" min="0" step="0.001" /></label>
+              <label class="campo"><span>RSSI dBm</span><input type="number" id="in-rssi" min="-95" max="-30" step="0.1" /></label>
+            </div>
+            <button type="button" class="enlace" id="btn-restablecer">Restablecer valores típicos</button>
+          </details>
+        </aside>
+
+        <!-- Resultado e información -->
+        <div class="principal">
+          <article class="resultado" id="resultado">
+            <div class="res-cabeza">
+              <p class="res-lugar" id="res-lugar"></p>
+              <p class="res-hora" id="res-hora"></p>
+            </div>
+
+            <div class="res-centro">
+              <svg class="wifi-icono" id="wifi-icono" viewBox="0 0 120 100" aria-hidden="true">
+                <path class="arco a3" d="M10 42 a70 70 0 0 1 100 0" />
+                <path class="arco a2" d="M28 60 a45 45 0 0 1 64 0" />
+                <path class="arco a1" d="M46 77 a20 20 0 0 1 28 0" />
+                <circle class="punto" cx="60" cy="89" r="7" />
+              </svg>
+              <div>
+                <p class="res-clase" id="res-clase">—</p>
+                <p class="res-frase" id="res-frase"></p>
+              </div>
+            </div>
+
+            <div class="res-detalle">
+              <div class="votos">
+                <div class="voto" id="voto-rf">
+                  <small>Random Forest</small>
+                  <b id="voto-rf-clase">—</b>
+                  <span id="voto-rf-pct"></span>
+                </div>
+                <div class="voto" id="voto-mlp">
+                  <small>Red neuronal</small>
+                  <b id="voto-mlp-clase">—</b>
+                  <span id="voto-mlp-pct"></span>
+                </div>
+              </div>
+              <div class="probs" id="probs"></div>
+            </div>
+            <p class="consenso" id="consenso"></p>
+
+            <button type="button" class="sugerencia" id="sugerencia" hidden></button>
+          </article>
+
+          <section class="bloque">
+            <div class="bloque-cabeza">
+              <h2>Tu día en este salón</h2>
+              <p class="nota" id="nota-dia"></p>
+            </div>
+            <div class="tira" id="tira-dia"></div>
+            <div class="leyenda" id="leyenda-dia"></div>
+          </section>
+
+          <section class="bloque">
+            <div class="bloque-cabeza">
+              <h2>Toda la red · <span id="mapa-hora">15:00</span></h2>
+              <div class="resumen-mapa" id="resumen-mapa"></div>
+            </div>
+            <div class="mapa" id="mapa-red"></div>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= MODELOS ================= -->
+    <section class="seccion" id="sec-modelos" hidden>
+      <header class="encabezado">
+        <p class="eyebrow">Validación temporal</p>
+        <h1>¿Qué tan bien predicen los modelos?</h1>
+        <p class="sub" id="sub-modelos"></p>
+      </header>
+
+      <div class="modelos-grid" id="modelos-grid"></div>
+
+      <section class="bloque" id="detalle-modelo">
+        <div class="bloque-cabeza">
+          <h2 id="detalle-titulo"></h2>
+          <p class="nota" id="detalle-desc"></p>
+        </div>
+        <div class="detalle-grid">
+          <div>
+            <h3>Matriz de confusión</h3>
+            <div id="matriz"></div>
+            <p class="nota chica">Filas: lo que pasó. Columnas: lo que dijo el modelo. La diagonal son aciertos.</p>
+          </div>
+          <div>
+            <h3>Aciertos por clase</h3>
+            <div id="por-clase"></div>
+          </div>
+        </div>
+      </section>
+
+      <details class="bloque glosario">
+        <summary>¿Qué significa cada métrica?</summary>
+        <dl>
+          <dt>Accuracy</dt><dd>Porcentaje de horas que el modelo acertó.</dd>
+          <dt>Accuracy balanceada</dt><dd>Promedio de aciertos de cada clase; no se infla porque "Regular" sea la más común.</dd>
+          <dt>F1 macro</dt><dd>Equilibrio entre precisión y recall, promediado entre las tres clases (0 a 1).</dd>
+          <dt>Recall "Débil"</dt><dd>De las horas que realmente tuvieron señal débil, cuántas detectó el modelo.</dd>
+        </dl>
+      </details>
+    </section>
+
+    <!-- ================= DATOS ================= -->
+    <section class="seccion" id="sec-datos" hidden>
+      <header class="encabezado">
+        <p class="eyebrow" id="kicker-fuente"></p>
+        <h1>Lo que dicen los datos</h1>
+        <p class="sub">Historial por hora de cada salón y área del campus.</p>
+      </header>
+
+      <div class="kpis" id="kpis-datos"></div>
+
+      <div class="datos-grid">
+        <section class="bloque">
+          <div class="bloque-cabeza"><h2>Calidad general</h2></div>
+          <div class="dona-box" id="dona"></div>
+        </section>
+        <section class="bloque">
+          <div class="bloque-cabeza">
+            <h2>Calidad por hora</h2>
+            <p class="nota">La señal débil sube en horas de clase.</p>
+          </div>
+          <div id="grafica-hora"></div>
+          <div class="leyenda" id="leyenda-hora"></div>
+        </section>
+      </div>
+
+      <section class="bloque">
+        <div class="bloque-cabeza"><h2>Por tipo de día</h2></div>
+        <div class="tipos" id="tipos-dia"></div>
+      </section>
+
+      <section class="bloque">
+        <div class="bloque-cabeza fila-cabeza">
+          <h2>Ranking de salones y áreas</h2>
+          <div class="segmento" role="tablist" aria-label="Orden">
+            <button type="button" class="seg activo" data-orden="peor">Peores</button>
+            <button type="button" class="seg" data-orden="mejor">Mejores</button>
+          </div>
+        </div>
+        <div id="ranking"></div>
+        <button type="button" class="enlace" id="btn-ver-todos">Ver todos</button>
+      </section>
+    </section>
+  </main>
+
+  <footer>
+    <span>Señal ITST · Análisis y Exploración de Datos</span>
+    <span id="pie-fuente"></span>
+  </footer>
+
+  <script src="modelo.js?v=55"></script>
+  <script src="forest.js?v=55"></script>
+  <script src="app.js?v=55"></script>
+</body>
+</html>
